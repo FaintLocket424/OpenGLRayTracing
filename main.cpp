@@ -4,21 +4,26 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <string>
-#include <filesystem>
-#include <limits>
-#include <fstream>
-#include <iterator>
-
 using namespace std;
 using namespace glm;
 
 const char *vertexShaderSource = "#version 460 core\n"
                                  "layout (location = 0) in vec3 aPos;\n"
+                                 "layout (location = 1) in vec3 aColor;\n"
+                                 "out vec3 ourColor;\n"
                                  "void main()\n"
                                  "{\n"
-                                 "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+                                 "   gl_Position = vec4(aPos, 1.0f);\n"
+                                 "   ourColor = aColor;\n"
                                  "}\0";
+
+const char *fragmentShaderSource = "#version 460 core\n"
+                                   "out vec4 FragColor;\n"
+                                   "in vec3 ourColor;\n"
+                                   "void main()\n"
+                                   "{\n"
+                                   "   FragColor = vec4(ourColor, 1.0f);\n"
+                                   "}\0";
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -72,20 +77,19 @@ int main() {
 
     // Simple NDC data to render a triangle
     float vertices[] = {
-            -0.5f, -0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            0.0f, 0.5f, 0.0f
+            // positions                        // colors
+            0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,   // bottom right
+            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,   // bottom left
+            0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f    // top
     };
 
-    // Create a vertex buffer object to store our vertices on the GPU.
-    unsigned int VBO;
-    glGenBuffers(1, &VBO);
 
-    // Set the VBO as the active Array Buffer object.
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-    // Copy the vertices data into the buffer.
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+//    // Set the VBO as the active Array Buffer object.
+//    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+//
+//    // Copy the vertices data into the buffer.
+//    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     // Create a shader and store an ID number for it.
     unsigned int vertexShader;
@@ -95,6 +99,7 @@ int main() {
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
 
+    // Check that the shader compilation was successful
     int success;
     char infoLog[512];
     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
@@ -102,7 +107,64 @@ int main() {
     if (!success) {
         glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
         cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << '\n';
+        return 4;
     }
+
+    // Create a shader and store an ID number for it.
+    unsigned int fragmentShader;
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+
+    // Attach the shader source code and compile.
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+
+    if (!success) {
+        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+        cerr << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << '\n';
+        return 5;
+    }
+
+    // Create a shader program.
+    unsigned int shaderProgram;
+    shaderProgram = glCreateProgram();
+
+    // Attach each shader to the program and link them.
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+
+    // Check for linking errors.
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        cerr << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << '\n';
+        return 6;
+    }
+
+    glUseProgram(shaderProgram);
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    // Create a vertex buffer object to store our vertices on the GPU.
+
+    unsigned int VAO;
+    glGenVertexArrays(1, &VAO);
+
+    glBindVertexArray(VAO);
+
+    unsigned int VBO;
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) 0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) (3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     while (!glfwWindowShouldClose(window)) {
         // Input Processing
@@ -110,6 +172,9 @@ int main() {
 
         // Rendering Processing
         glClear(GL_COLOR_BUFFER_BIT);
+        glUseProgram(shaderProgram);
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // Polling and buffer swapping
         glfwSwapBuffers(window);
