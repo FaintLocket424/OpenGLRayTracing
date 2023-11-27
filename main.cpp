@@ -1,4 +1,4 @@
-#include "libraries/shader_s.h"
+#include "shader_s.h"
 
 #define GLFW_INIT_FAIL 1
 #define GLFW_WINDOW_INIT_FAIL 2
