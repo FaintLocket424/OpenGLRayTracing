@@ -3,8 +3,11 @@ project(openGLRayTracer)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(openGLRayTracer main.cpp
-        shader_s.h)
+add_executable(openGLRayTracer
+        main.cpp
+        libraries/shader_s.h
+        libraries/stb_image.h
+)
 
 add_subdirectory(glad/)
 target_link_libraries(openGLRayTracer glad)
