@@ -18,11 +18,30 @@ using namespace glm;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
+void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+
 void processInput(GLFWwindow *window);
+
+void scroll_callback(GLFWwindow  *window, double xoffset, double yoffset);
 
 // settings
 int SCR_WIDTH = 1280;
 int SCR_HEIGHT = 720;
+
+vec3 cameraPos(0.0f, 0.0f, 0.0f);
+vec3 cameraFront(0.0f, 0.0f, -1.0f);
+vec3 cameraUp(0.0f, 1.0f, 0.0f);
+
+float deltaTime = 0.0f;
+
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
+
+float cameraYaw = -90.0f;
+float cameraPitch = 0.0f;
+float cameraFov = 45.0f;
+
+bool firstMouse = true;
 
 int main() {
     // glfw: initialize and configure
@@ -32,20 +51,29 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+    GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode *mode = glfwGetVideoMode(monitor);
 
-    // glfw window creation
-    // --------------------
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+
+    SCR_WIDTH = mode->width;
+    SCR_HEIGHT = mode->height;
+
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", monitor, NULL);
+
     if (window == NULL) {
         cout << "Failed to create GLFW window" << endl;
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(0);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -58,6 +86,7 @@ int main() {
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // build and compile our shader zprogram
     // ------------------------------------
@@ -212,13 +241,14 @@ int main() {
 
     vec3 cameraTarget(0.0f, 0.0f, 0.0f);
 
-    float radius = 9.0f;
-    vec3 cameraPos(0.0f, 0.0f, 0.0f);
 
-
-    vec3 up(0.0f, 1.0f, 0.0f);
+    float lastFrame = 0.0f;
 
     while (!glfwWindowShouldClose(window)) {
+        cout << "fps: " << 1.0f / deltaTime << '\n';
+        auto currentFrame = (float) glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
         // input
         // -----
         processInput(window);
@@ -237,18 +267,13 @@ int main() {
         // activate shader
         ourShader.use();
 
-        cameraPos.x = (float)sin(glfwGetTime()) * radius;
-        cameraPos.z = (float)cos(glfwGetTime()) * radius;
-//        cameraPos.x = radius;
-        vec cameraDirection = normalize(cameraPos - cameraTarget);
-
         // create transformations
         mat4 view = mat4(1.0f);
-        view = lookAt(cameraPos, cameraTarget, up);
+        view = lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         ourShader.setMat4("view", view);
 
         mat4 projection = mat4(1.0f);
-        projection = perspective(radians(45.0f), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+        projection = perspective(radians(cameraFov), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
         ourShader.setMat4("projection", projection);
 
 
@@ -289,6 +314,60 @@ int main() {
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    const float cameraSpeed = 2.5f * deltaTime;
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        cameraPos += cameraSpeed * cameraFront;
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        cameraPos -= cameraSpeed * cameraFront;
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        cameraPos.y += cameraSpeed;
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        cameraPos.y -= cameraSpeed;
+    }
+}
+
+void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
+    if (firstMouse) {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    const float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    cameraYaw += xoffset;
+    cameraPitch += yoffset;
+
+    if (cameraPitch > 89.0f) {
+        cameraPitch = 89.0f;
+    }
+    if (cameraPitch < -89.0f) {
+        cameraPitch = -89.0f;
+    }
+
+    vec3 direction;
+    direction.x = cos(radians(cameraYaw)) * cos(radians(cameraPitch));
+    direction.y = sin(radians(cameraPitch));
+    direction.z = sin(radians(cameraYaw)) * cos(radians(cameraPitch));
+    cameraFront = normalize(direction);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -299,4 +378,13 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
     SCR_WIDTH = width;
     SCR_HEIGHT = height;
+}
+
+void scroll_callback(GLFWwindow  *window, double xoffset, double yoffset) {
+    cameraFov -= (float)yoffset;
+    if (cameraFov < 1.0f)
+        cameraFov = 1.0f;
+
+    if (cameraFov > 45.0f)
+        cameraFov = 45.0;
 }
