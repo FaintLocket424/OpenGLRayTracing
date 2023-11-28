@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.26)
 project(openGLRayTracer)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 
 add_executable(openGLRayTracer
         main.cpp
         shader_s.h
         libraries/stb_image.h
+        camera.h
 )
 
 add_subdirectory(glad/)
