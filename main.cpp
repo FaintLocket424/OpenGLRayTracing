@@ -13,13 +13,16 @@
 
 #include <iostream>
 
+using namespace std;
+using namespace glm;
+
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 void processInput(GLFWwindow *window);
 
 // settings
-const unsigned int SCR_WIDTH = 1280;
-const unsigned int SCR_HEIGHT = 720;
+int SCR_WIDTH = 1280;
+int SCR_HEIGHT = 720;
 
 int main() {
     // glfw: initialize and configure
@@ -37,7 +40,7 @@ int main() {
     // --------------------
     GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL) {
-        std::cout << "Failed to create GLFW window" << std::endl;
+        cout << "Failed to create GLFW window" << endl;
         glfwTerminate();
         return -1;
     }
@@ -47,7 +50,7 @@ int main() {
     // glad: load all OpenGL function pointers
     // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+        cout << "Failed to initialize GLAD" << endl;
         return -1;
     }
 
@@ -104,33 +107,33 @@ int main() {
             0, 2, 1,
             0, 3, 2,
 
-            0+4, 2+4, 1+4,
-            0+4, 3+4, 2+4,
+            0 + 4, 2 + 4, 1 + 4,
+            0 + 4, 3 + 4, 2 + 4,
 
-            0+8, 2+8, 1+8,
-            0+8, 3+8, 2+8,
+            0 + 8, 2 + 8, 1 + 8,
+            0 + 8, 3 + 8, 2 + 8,
 
-            0+12, 2+12, 1+12,
-            0+12, 3+12, 2+12,
+            0 + 12, 2 + 12, 1 + 12,
+            0 + 12, 3 + 12, 2 + 12,
 
-            0+16, 2+16, 1+16,
-            0+16, 3+16, 2+16,
+            0 + 16, 2 + 16, 1 + 16,
+            0 + 16, 3 + 16, 2 + 16,
 
-            0+20, 2+20, 1+20,
-            0+20, 3+20, 2+20,
+            0 + 20, 2 + 20, 1 + 20,
+            0 + 20, 3 + 20, 2 + 20,
     };
     // world space positions of our cubes
-    glm::vec3 cubePositions[] = {
-            glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(2.0f, 5.0f, -15.0f),
-            glm::vec3(-1.5f, -2.2f, -2.5f),
-            glm::vec3(-3.8f, -2.0f, -12.3f),
-            glm::vec3(2.4f, -0.4f, -3.5f),
-            glm::vec3(-1.7f, 3.0f, -7.5f),
-            glm::vec3(1.3f, -2.0f, -2.5f),
-            glm::vec3(1.5f, 2.0f, -2.5f),
-            glm::vec3(1.5f, 0.2f, -1.5f),
-            glm::vec3(-1.3f, 1.0f, -1.5f)
+    vec3 cubePositions[] = {
+            vec3(0.0f, 0.0f, 0.0f),
+            vec3(2.0f, 5.0f, -15.0f),
+            vec3(-1.5f, -2.2f, -2.5f),
+            vec3(-3.8f, -2.0f, -12.3f),
+            vec3(2.4f, -0.4f, -3.5f),
+            vec3(-1.7f, 3.0f, -7.5f),
+            vec3(1.3f, -2.0f, -2.5f),
+            vec3(1.5f, 2.0f, -2.5f),
+            vec3(1.5f, 0.2f, -1.5f),
+            vec3(-1.3f, 1.0f, -1.5f)
     };
 
     unsigned int VBO, VAO, EBO;
@@ -176,7 +179,7 @@ int main() {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cout << "Failed to load texture" << std::endl;
+        cout << "Failed to load texture" << endl;
     }
     stbi_image_free(data);
     // texture 2
@@ -197,7 +200,7 @@ int main() {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cout << "Failed to load texture" << std::endl;
+        cout << "Failed to load texture" << endl;
     }
     stbi_image_free(data);
 
@@ -207,9 +210,14 @@ int main() {
     ourShader.setInt("texture1", 0);
     ourShader.setInt("texture2", 1);
 
+    vec3 cameraTarget(0.0f, 0.0f, 0.0f);
 
-    // render loop
-    // -----------
+    float radius = 9.0f;
+    vec3 cameraPos(0.0f, 0.0f, 0.0f);
+
+
+    vec3 up(0.0f, 1.0f, 0.0f);
+
     while (!glfwWindowShouldClose(window)) {
         // input
         // -----
@@ -229,25 +237,30 @@ int main() {
         // activate shader
         ourShader.use();
 
+        cameraPos.x = (float)sin(glfwGetTime()) * radius;
+        cameraPos.z = (float)cos(glfwGetTime()) * radius;
+//        cameraPos.x = radius;
+        vec cameraDirection = normalize(cameraPos - cameraTarget);
+
         // create transformations
-        glm::mat4 view = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        glm::mat4 projection = glm::mat4(1.0f);
-        projection = glm::perspective(glm::radians(45.0f), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-        // pass transformation matrices to the shader
-        ourShader.setMat4("projection",
-                          projection); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
+        mat4 view = mat4(1.0f);
+        view = lookAt(cameraPos, cameraTarget, up);
         ourShader.setMat4("view", view);
+
+        mat4 projection = mat4(1.0f);
+        projection = perspective(radians(45.0f), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+        ourShader.setMat4("projection", projection);
+
 
         // render boxes
         glBindVertexArray(VAO);
         for (unsigned int i = 0; i < 10; i++) {
             // calculate the model matrix for each object and pass it to shader before drawing
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, cubePositions[i]);
-//            float angle = 20.0f * 0;
-            float angle = 20.0f * i + 100 * (float) glfwGetTime();
-            model = glm::rotate(model, glm::radians(angle), normalize(glm::vec3(1.0f, 1.0f, 1.0f)));
+            mat4 model = mat4(1.0f);
+            model = translate(model, cubePositions[i]);
+            float angle = 0;
+//            float angle = 45 * (float) glfwGetTime();
+            model = rotate(model, radians(angle), normalize(vec3(0, 1.0f, 0)));
             ourShader.setMat4("model", model);
 
             glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
@@ -284,4 +297,6 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+    SCR_WIDTH = width;
+    SCR_HEIGHT = height;
 }
