@@ -16,6 +16,7 @@ target_link_libraries(openGLRayTracer "C:/cppLibs/glfw/lib-vc2022/glfw3.lib")
 target_link_libraries(openGLRayTracer "C:/cppLibs/glfw/lib-vc2022/glfw3_mt.lib")
 target_link_libraries(openGLRayTracer "C:/cppLibs/glfw/lib-vc2022/glfw3dll.lib")
 
+include_directories(libraries)
 include_directories("C:/cppLibs/glm/glm")
 include_directories("C:/cppLibs/glad/include")
 include_directories("C:/cppLibs/glfw/include")
