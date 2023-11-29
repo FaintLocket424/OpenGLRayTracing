@@ -47,6 +47,20 @@ Camera camera = Camera(vec2(1280, 720), vec3(0.0f, 0.0f, 4.0f));
 
 vec3 lightPos(1.2f, 1.0f, 2.0f);
 
+struct Material {
+    vec3 ambient{};
+    vec3 diffuse{};
+    vec3 specular{};
+    float shininess;
+
+    Material(vec3 ambient, vec3 diffuse, vec3 specular, float shininess) {
+        this->ambient = ambient;
+        this->diffuse = diffuse;
+        this->specular = specular;
+        this->shininess = shininess;
+    }
+};
+
 void trace() {
     auto trace = stacktrace::current();
     for (const auto &entry: trace) {
@@ -284,6 +298,13 @@ int main() {
 
     float lastFrame = 0.0f;
 
+    Material material(
+            vec3(1.0f),
+            vec3(1.0f),
+            vec3(1.0f),
+            32.0f
+    );
+
     while (!glfwWindowShouldClose(window)) {
 //        cout << "fps: " << 1.0f / deltaTime << '\n';
         auto currentFrame = (float) glfwGetTime();
@@ -319,6 +340,12 @@ int main() {
         lightPos.y = lightRadius * cos(2 * (float) glfwGetTime());
         lightPos.z = lightRadius * sin(2 * (float) glfwGetTime());
 
+        vec3 lightColor(
+                abs(sin((float) glfwGetTime() * 1.5f + 1.5f)),
+                abs(sin((float)glfwGetTime() * 0.5f + 0.5f)),
+                abs(sin((float)glfwGetTime() * 1.15f - 0.1f))
+        );
+
         // render boxes
         glBindVertexArray(cubeVAO);
         for (unsigned int i = 0; i < 10; i++) {
@@ -334,8 +361,18 @@ int main() {
             mat3 normalModel = mat3(inverseModel);
             lightingShader.setMat3("normalModel", normalModel);
 
-            lightingShader.setVec3("lightPos", lightPos);
+            lightingShader.setVec3("light.position", lightPos);
             lightingShader.setVec3("viewPos", camera.GetPosition());
+
+            lightingShader.setVec3("material.ambient", material.ambient);
+            lightingShader.setVec3("material.diffuse", material.diffuse);
+            lightingShader.setVec3("material.specular", material.specular);
+            lightingShader.setFloat("material.shininess", material.shininess);
+
+            lightingShader.setVec3("light.ambient", vec3(0.2f));
+            lightingShader.setVec3("light.diffuse", vec3(0.5f));
+            lightingShader.setVec3("light.specular", vec3(1.0f));
+            lightingShader.setVec3("light.color", lightColor);
 
             glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
         }
@@ -348,6 +385,8 @@ int main() {
         model = translate(model, lightPos);
         model = scale(model, vec3(0.2f));
         lightCubeShader.setMat4("model", model);
+
+        lightCubeShader.setVec3("lightColor", lightColor);
 
         glBindVertexArray(lightCubeVAO);
         glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, nullptr);
