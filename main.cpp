@@ -242,7 +242,7 @@ int main() {
 
     // load and create a texture
     // -------------------------
-    unsigned int texture1, texture2;
+    unsigned int texture1;
     // texture 1
     // ---------
     glGenTextures(1, &texture1);
@@ -256,17 +256,20 @@ int main() {
     // load image, create texture and generate mipmaps
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    unsigned char *data = stbi_load("assets/textures/to-to-table.png", &width, &height,
+    unsigned char *data = stbi_load("assets/textures/container2.png", &width, &height,
                                     &nrChannels, 0);
     if (data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
         cout << "Failed to load texture" << endl;
     }
     stbi_image_free(data);
-    // texture 2
-    // ---------
+
+
+//     texture 2
+//     ---------
+    unsigned int texture2;
     glGenTextures(1, &texture2);
     glBindTexture(GL_TEXTURE_2D, texture2);
     // set the texture wrapping parameters
@@ -276,7 +279,7 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // load image, create texture and generate mipmaps
-    data = stbi_load("assets/textures/awesomeface.png", &width, &height, &nrChannels, 0);
+    data = stbi_load("assets/textures/container2_specular.png", &width, &height, &nrChannels, 0);
     if (data) {
         // note that the awesomeface.png has transparency and thus an alpha channel, so make sure to tell OpenGL the data type is of GL_RGBA
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -293,8 +296,7 @@ int main() {
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
     lightingShader.use();
-    lightingShader.setInt("texture1", 0);
-    lightingShader.setInt("texture2", 1);
+//    lightingShader.setInt("texture2", 1);
 
     float lastFrame = 0.0f;
 
@@ -327,7 +329,7 @@ int main() {
 
         // activate shader
         lightingShader.use();
-        lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+//        lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
         mat4 view = camera.GetViewMatrix();
         mat4 projection = camera.GetProjectionMatrix();
@@ -336,15 +338,17 @@ int main() {
         lightingShader.setMat4("projection", projection);
 
         float lightRadius = 3.0f;
-        lightPos.x = lightRadius * cos(2 * (float) glfwGetTime());
-        lightPos.y = lightRadius * cos(2 * (float) glfwGetTime());
-        lightPos.z = lightRadius * sin(2 * (float) glfwGetTime());
+        lightPos.x = lightRadius * cos(1 * (float) 2);
+        lightPos.y = lightRadius * sin(1 * (float) 2);
+        lightPos.z = lightRadius * sin(1 * (float) 2);
 
-        vec3 lightColor(
-                abs(sin((float) glfwGetTime() * 1.5f + 1.5f)),
-                abs(sin((float)glfwGetTime() * 0.5f + 0.5f)),
-                abs(sin((float)glfwGetTime() * 1.15f - 0.1f))
-        );
+        vec3 lightColor(1.0f, 1.0f, 1.0f);
+
+//        vec3 lightColor(
+//                abs(sin((float) glfwGetTime() * 1.5f + 1.5f)),
+//                abs(sin((float) glfwGetTime() * 0.5f + 0.5f)),
+//                abs(sin((float) glfwGetTime() * 1.15f - 0.1f))
+//        );
 
         // render boxes
         glBindVertexArray(cubeVAO);
@@ -364,9 +368,8 @@ int main() {
             lightingShader.setVec3("light.position", lightPos);
             lightingShader.setVec3("viewPos", camera.GetPosition());
 
-            lightingShader.setVec3("material.ambient", material.ambient);
-            lightingShader.setVec3("material.diffuse", material.diffuse);
-            lightingShader.setVec3("material.specular", material.specular);
+            lightingShader.setInt("material.diffuse", 0);
+            lightingShader.setInt("material.specular", 1);
             lightingShader.setFloat("material.shininess", material.shininess);
 
             lightingShader.setVec3("light.ambient", vec3(0.2f));
