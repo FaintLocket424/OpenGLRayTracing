@@ -43,7 +43,7 @@ GLFWmonitor *monitor;
 
 bool fullScreen = false;
 
-Camera camera = Camera(vec2(1280, 720), vec3(0.0f, 0.0f, 3.0f));
+Camera camera = Camera(vec2(1280, 720), vec3(0.0f, 0.0f, 4.0f));
 
 vec3 lightPos(1.2f, 1.0f, 2.0f);
 
@@ -150,7 +150,7 @@ int main() {
             -0.5f, 0.5f, 0.5f, 1.0f, 1.0f, -1.0f, 0.0f, 0.0f, // A TOP RIGHT
             -0.5f, -0.5f, 0.5f, 1.0f, 0.0f, -1.0f, 0.0f, 0.0f, // D BOTTOM RIGHT
             -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // H BOTTOM LEFT
-\
+            \
             // RIGHT
             0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, // B TOP LEFT
             0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, // F TOP RIGHT
@@ -315,9 +315,9 @@ int main() {
         lightingShader.setMat4("projection", projection);
 
         float lightRadius = 3.0f;
-        lightPos.x = lightRadius * cos(2*(float)glfwGetTime());
-        lightPos.y = lightRadius * cos(2*(float)glfwGetTime());
-        lightPos.z = lightRadius * sin(2*(float)glfwGetTime());
+        lightPos.x = lightRadius * cos(2 * (float) glfwGetTime());
+        lightPos.y = lightRadius * cos(2 * (float) glfwGetTime());
+        lightPos.z = lightRadius * sin(2 * (float) glfwGetTime());
 
         // render boxes
         glBindVertexArray(cubeVAO);
@@ -335,6 +335,7 @@ int main() {
             lightingShader.setMat3("normalModel", normalModel);
 
             lightingShader.setVec3("lightPos", lightPos);
+            lightingShader.setVec3("viewPos", camera.GetPosition());
 
             glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
         }
