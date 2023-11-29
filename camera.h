@@ -68,7 +68,9 @@ public:
         return projectionMatrix;
     }
 
-
+    vec3 GetPosition() {
+        return Position;
+    }
 
     void UpdatePosition(vec3 newPos) {
         Position = newPos;
@@ -80,27 +82,21 @@ public:
 
         switch (direction) {
             case FORWARD:
-//                Position += Front * velocity;
                 UpdatePosition(Position + (Front * velocity));
                 break;
             case BACKWARD:
-//                Position -= Front * velocity;
                 UpdatePosition(Position - (Front * velocity));
                 break;
             case LEFT:
-//                Position -= Right * velocity;
                 UpdatePosition(Position - (Right * velocity));
                 break;
             case RIGHT:
-//                Position += Right * velocity;
                 UpdatePosition(Position + (Right * velocity));
                 break;
             case UP:
-//                Position += WorldUp * velocity;
                 UpdatePosition(Position + (WorldUp * velocity));
                 break;
             case DOWN:
-//                Position -= WorldUp * velocity;
                 UpdatePosition(Position - (WorldUp * velocity));
                 break;
         }
