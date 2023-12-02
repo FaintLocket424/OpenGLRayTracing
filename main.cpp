@@ -45,7 +45,9 @@ bool fullScreen = false;
 
 Camera camera = Camera(vec2(1280, 720), vec3(0.0f, 0.0f, 4.0f));
 
-vec3 lightPos(1.2f, 1.0f, 2.0f);
+//vec3 lightPos(4.0f, 1.0f, 3.0f);
+
+bool flashLight = true;
 
 struct Material {
     vec3 ambient{};
@@ -205,6 +207,12 @@ int main() {
             vec3(-1.3f, 1.0f, -1.5f)
     };
 
+//    vec3 cubePositions[8];
+
+//    for (int i = 0; i < (sizeof(cubePositions) / sizeof(vec3)); i++) {
+//        cubePositions[i] = vec3(1.5f * i, 0.0f, 0.0f);
+//    }
+
     unsigned int VBO, cubeVAO, EBO, lightCubeVAO;
 
     glGenVertexArrays(1, &lightCubeVAO);
@@ -307,6 +315,43 @@ int main() {
             32.0f
     );
 
+//    lightingShader.setFloat("light.constant", 1.0f);
+//    lightingShader.setFloat("light.linear", 0.04f);
+//    lightingShader.setFloat("light.quadratic", 0.012f);
+
+//    lightingShader.setFloat("light.cutOff", (float)cos(radians(12.5)));
+//    lightingShader.setFloat("light.outerCutOff", (float)cos(radians(17.5)));
+
+    vec3 pointLightPositions[] = {
+            vec3( 0.7f,  0.2f,  2.0f),
+            vec3( 2.3f, -3.3f, -4.0f),
+            vec3(-4.0f,  2.0f, -12.0f),
+            vec3( 0.0f,  0.0f, -3.0f)
+    };
+
+    vec3 lightColor(1.0f, 1.0f, 1.0f);
+
+    for (int i = 0; i < sizeof(pointLightPositions) / sizeof(vec3); i++) {
+        lightingShader.setFloat(format("pointLights[{0}].constant", i), 1.0f);
+        lightingShader.setFloat(format("pointLights[{0}].linear", i), 0.09f);
+        lightingShader.setFloat(format("pointLights[{0}].quadratic", i), 0.032f);
+
+        lightingShader.setVec3(format("pointLights[{0}].position", i), pointLightPositions[i]);
+        lightingShader.setVec3(format("pointLights[{0}].ambient", i), vec3(0.05f));
+        lightingShader.setVec3(format("pointLights[{0}].diffuse", i), vec3(0.8f));
+        lightingShader.setVec3(format("pointLights[{0}].specular", i), vec3(1.0f));
+        lightingShader.setVec3(format("pointLights[{0}].colour", i), lightColor);
+    }
+
+    lightingShader.setVec3("dirLight.direction", vec3(-1.0f));
+    lightingShader.setVec3("dirLight.colour", lightColor);
+    lightingShader.setVec3("dirLight.ambient", vec3(0.05f));
+    lightingShader.setVec3("dirLight.diffuse", vec3(0.4f));
+    lightingShader.setVec3("dirLight.specular", vec3(0.5f));
+//    lightingShader.setVec3("dirLight.ambient", vec3(0.0f));
+//    lightingShader.setVec3("dirLight.diffuse", vec3(0.0f));
+//    lightingShader.setVec3("dirLight.specular", vec3(0.0f));
+
     while (!glfwWindowShouldClose(window)) {
 //        cout << "fps: " << 1.0f / deltaTime << '\n';
         auto currentFrame = (float) glfwGetTime();
@@ -337,12 +382,12 @@ int main() {
         lightingShader.setMat4("view", view);
         lightingShader.setMat4("projection", projection);
 
-        float lightRadius = 3.0f;
-        lightPos.x = lightRadius * cos(1 * (float) 2);
-        lightPos.y = lightRadius * sin(1 * (float) 2);
-        lightPos.z = lightRadius * sin(1 * (float) 2);
+//        float lightRadius = 3.0f;
+//        lightPos.x = lightRadius * cos(1.3f * (float) glfwGetTime());
+//        lightPos.y = lightRadius * sin(1.1f * (float) glfwGetTime());
+//        lightPos.z = lightRadius * sin(1.4f * (float) glfwGetTime());
 
-        vec3 lightColor(1.0f, 1.0f, 1.0f);
+
 
 //        vec3 lightColor(
 //                abs(sin((float) glfwGetTime() * 1.5f + 1.5f)),
@@ -352,30 +397,36 @@ int main() {
 
         // render boxes
         glBindVertexArray(cubeVAO);
-        for (unsigned int i = 0; i < 10; i++) {
+        for (unsigned int i = 0; i < (sizeof(cubePositions) / sizeof(vec3)); i++) {
             // calculate the model matrix for each object and pass it to shader before drawing
             mat4 model = mat4(1.0f);
             model = translate(model, cubePositions[i]);
-            auto angle = (float) (20 * i);
+            auto angle = (float) (90 * i);
             model = rotate(model, radians(angle), normalize(vec3(0, 1.0f, 0)));
             lightingShader.setMat4("model", model);
 
             mat4 inverseModel = inverse(model);
-            inverseModel = transpose(model);
+            inverseModel = transpose(inverseModel);
             mat3 normalModel = mat3(inverseModel);
             lightingShader.setMat3("normalModel", normalModel);
 
-            lightingShader.setVec3("light.position", lightPos);
+//            lightingShader.setVec3("light.position", lightPos);
+//            lightingShader.setVec3("light.position", camera.GetPosition());
+//            lightingShader.setVec3("light.direction", camera.GetFront());
+
+//            lightingShader.setVec3("light.direction", vec3(1.0f, 1.0f, 1.0f));
             lightingShader.setVec3("viewPos", camera.GetPosition());
 
             lightingShader.setInt("material.diffuse", 0);
             lightingShader.setInt("material.specular", 1);
             lightingShader.setFloat("material.shininess", material.shininess);
 
-            lightingShader.setVec3("light.ambient", vec3(0.2f));
-            lightingShader.setVec3("light.diffuse", vec3(0.5f));
-            lightingShader.setVec3("light.specular", vec3(1.0f));
-            lightingShader.setVec3("light.color", lightColor);
+//            lightingShader.setVec3("light.ambient", vec3(0.2f));
+//            lightingShader.setVec3("light.diffuse", vec3(0.5f));
+//            lightingShader.setVec3("light.specular", vec3(1.0f));
+//            lightingShader.setVec3("light.color", lightColor);
+
+//            lightingShader.setBool("light.flashLight", flashLight);
 
             glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
         }
@@ -384,15 +435,18 @@ int main() {
         lightCubeShader.setMat4("projection", projection);
         lightCubeShader.setMat4("view", view);
 
-        mat4 model(1.0f);
-        model = translate(model, lightPos);
-        model = scale(model, vec3(0.2f));
-        lightCubeShader.setMat4("model", model);
+        for (unsigned int i = 0; i < sizeof(pointLightPositions) / sizeof(vec3); i++) {
+            mat4 model(1.0f);
+            model = translate(model, pointLightPositions[i]);
+            model = scale(model, vec3(0.2f));
+            lightCubeShader.setMat4("model", model);
 
-        lightCubeShader.setVec3("lightColor", lightColor);
+            lightCubeShader.setVec3("lightColor", lightColor);
 
-        glBindVertexArray(lightCubeVAO);
-        glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, nullptr);
+            glBindVertexArray(lightCubeVAO);
+            glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, nullptr);
+        }
+
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -466,6 +520,11 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         case GLFW_KEY_F10: {
             if (action != GLFW_PRESS) break;
             cout << "TOGGLE RAY TRACING\n";
+        }
+
+        case GLFW_KEY_F: {
+            if (action != GLFW_PRESS) break;
+            flashLight = !flashLight;
         }
 
         default: {

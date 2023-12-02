@@ -72,6 +72,10 @@ public:
         return Position;
     }
 
+    vec3 GetFront() {
+        return Front;
+    }
+
     void UpdatePosition(vec3 newPos) {
         Position = newPos;
         RegenerateViewMatrix();
@@ -119,10 +123,11 @@ public:
     }
 
     void ProcessMouseScroll(float yOffset) {
-        Fov -= yOffset;
+//        Fov -= yOffset;
 
-        Fov = clamp(Fov, 1.0f, 45.0f);
-        RegenerateProjectionMatrix();
+//        Fov = clamp(Fov, 1.0f, 45.0f);
+//        RegenerateProjectionMatrix();
+        MovementSpeed += 0.2f * yOffset;
     }
 
 private:
