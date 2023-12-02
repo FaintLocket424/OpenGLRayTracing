@@ -348,9 +348,6 @@ int main() {
     lightingShader.setVec3("dirLight.ambient", vec3(0.05f));
     lightingShader.setVec3("dirLight.diffuse", vec3(0.4f));
     lightingShader.setVec3("dirLight.specular", vec3(0.5f));
-//    lightingShader.setVec3("dirLight.ambient", vec3(0.0f));
-//    lightingShader.setVec3("dirLight.diffuse", vec3(0.0f));
-//    lightingShader.setVec3("dirLight.specular", vec3(0.0f));
 
     while (!glfwWindowShouldClose(window)) {
 //        cout << "fps: " << 1.0f / deltaTime << '\n';
@@ -374,20 +371,12 @@ int main() {
 
         // activate shader
         lightingShader.use();
-//        lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
         mat4 view = camera.GetViewMatrix();
         mat4 projection = camera.GetProjectionMatrix();
 
         lightingShader.setMat4("view", view);
         lightingShader.setMat4("projection", projection);
-
-//        float lightRadius = 3.0f;
-//        lightPos.x = lightRadius * cos(1.3f * (float) glfwGetTime());
-//        lightPos.y = lightRadius * sin(1.1f * (float) glfwGetTime());
-//        lightPos.z = lightRadius * sin(1.4f * (float) glfwGetTime());
-
-
 
 //        vec3 lightColor(
 //                abs(sin((float) glfwGetTime() * 1.5f + 1.5f)),
@@ -410,23 +399,11 @@ int main() {
             mat3 normalModel = mat3(inverseModel);
             lightingShader.setMat3("normalModel", normalModel);
 
-//            lightingShader.setVec3("light.position", lightPos);
-//            lightingShader.setVec3("light.position", camera.GetPosition());
-//            lightingShader.setVec3("light.direction", camera.GetFront());
-
-//            lightingShader.setVec3("light.direction", vec3(1.0f, 1.0f, 1.0f));
             lightingShader.setVec3("viewPos", camera.GetPosition());
 
             lightingShader.setInt("material.diffuse", 0);
             lightingShader.setInt("material.specular", 1);
             lightingShader.setFloat("material.shininess", material.shininess);
-
-//            lightingShader.setVec3("light.ambient", vec3(0.2f));
-//            lightingShader.setVec3("light.diffuse", vec3(0.5f));
-//            lightingShader.setVec3("light.specular", vec3(1.0f));
-//            lightingShader.setVec3("light.color", lightColor);
-
-//            lightingShader.setBool("light.flashLight", flashLight);
 
             glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
         }
@@ -486,7 +463,6 @@ void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         camera.ProcessKeyboard(RIGHT, deltaTime);
     }
-
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
         camera.ProcessKeyboard(UP, deltaTime);
     }
