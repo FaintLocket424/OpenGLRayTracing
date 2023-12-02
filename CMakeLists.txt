@@ -8,6 +8,8 @@ add_executable(openGLRayTracer
         shader_s.h
         libraries/stb_image.h
         camera.h
+        texture.h
+        texture.cpp
 )
 
 add_subdirectory(glad/)

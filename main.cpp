@@ -1,16 +1,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-
-#include <stb_image.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+//#include <glm/gtc/type_ptr.hpp>
 
 #include "shader_s.h"
 #include "camera.h"
+#include "texture.h"
 
 #include <iostream>
 
@@ -207,12 +204,6 @@ int main() {
             vec3(-1.3f, 1.0f, -1.5f)
     };
 
-//    vec3 cubePositions[8];
-
-//    for (int i = 0; i < (sizeof(cubePositions) / sizeof(vec3)); i++) {
-//        cubePositions[i] = vec3(1.5f * i, 0.0f, 0.0f);
-//    }
-
     unsigned int VBO, cubeVAO, EBO, lightCubeVAO;
 
     glGenVertexArrays(1, &lightCubeVAO);
@@ -247,58 +238,8 @@ int main() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) nullptr);
     glEnableVertexAttribArray(0);
 
-
-    // load and create a texture
-    // -------------------------
-    unsigned int texture1;
-    // texture 1
-    // ---------
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    unsigned char *data = stbi_load("assets/textures/container2.png", &width, &height,
-                                    &nrChannels, 0);
-    if (data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    } else {
-        cout << "Failed to load texture" << endl;
-    }
-    stbi_image_free(data);
-
-
-//     texture 2
-//     ---------
-    unsigned int texture2;
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    data = stbi_load("assets/textures/container2_specular.png", &width, &height, &nrChannels, 0);
-    if (data) {
-        // note that the awesomeface.png has transparency and thus an alpha channel, so make sure to tell OpenGL the data type is of GL_RGBA
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    } else {
-        cout << "Failed to load texture" << endl;
-    }
-    stbi_image_free(data);
-
-
-
+    Texture texture1("assets/textures/container2.png");
+    Texture texture2("assets/textures/container2_specular.png");
 
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
@@ -315,18 +256,11 @@ int main() {
             32.0f
     );
 
-//    lightingShader.setFloat("light.constant", 1.0f);
-//    lightingShader.setFloat("light.linear", 0.04f);
-//    lightingShader.setFloat("light.quadratic", 0.012f);
-
-//    lightingShader.setFloat("light.cutOff", (float)cos(radians(12.5)));
-//    lightingShader.setFloat("light.outerCutOff", (float)cos(radians(17.5)));
-
     vec3 pointLightPositions[] = {
-            vec3( 0.7f,  0.2f,  2.0f),
-            vec3( 2.3f, -3.3f, -4.0f),
-            vec3(-4.0f,  2.0f, -12.0f),
-            vec3( 0.0f,  0.0f, -3.0f)
+            vec3(0.7f, 0.2f, 2.0f),
+            vec3(2.3f, -3.3f, -4.0f),
+            vec3(-4.0f, 2.0f, -12.0f),
+            vec3(0.0f, 0.0f, -3.0f)
     };
 
     vec3 lightColor(1.0f, 1.0f, 1.0f);
@@ -349,6 +283,8 @@ int main() {
     lightingShader.setVec3("dirLight.diffuse", vec3(0.4f));
     lightingShader.setVec3("dirLight.specular", vec3(0.5f));
 
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
     while (!glfwWindowShouldClose(window)) {
 //        cout << "fps: " << 1.0f / deltaTime << '\n';
         auto currentFrame = (float) glfwGetTime();
@@ -360,14 +296,14 @@ int main() {
 
         // render
         // ------
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
 
         // bind textures on corresponding texture units
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1);
+        glBindTexture(GL_TEXTURE_2D, texture1.GetId());
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture2);
+        glBindTexture(GL_TEXTURE_2D, texture2.GetId());
 
         // activate shader
         lightingShader.use();
@@ -412,9 +348,9 @@ int main() {
         lightCubeShader.setMat4("projection", projection);
         lightCubeShader.setMat4("view", view);
 
-        for (unsigned int i = 0; i < sizeof(pointLightPositions) / sizeof(vec3); i++) {
+        for (auto pointLightPosition : pointLightPositions) {
             mat4 model(1.0f);
-            model = translate(model, pointLightPositions[i]);
+            model = translate(model, pointLightPosition);
             model = scale(model, vec3(0.2f));
             lightCubeShader.setMat4("model", model);
 
@@ -535,3 +471,4 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 void scroll_callback(GLFWwindow *window, double xOffset, double yOffset) {
     camera.ProcessMouseScroll(static_cast<float>(yOffset));
 }
+
