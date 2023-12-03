@@ -10,6 +10,8 @@ add_executable(openGLRayTracer
         camera.h
         texture.h
         texture.cpp
+        cube.h
+        cube.cpp
 )
 
 add_subdirectory(glad/)

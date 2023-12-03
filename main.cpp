@@ -8,6 +8,7 @@
 #include "shader_s.h"
 #include "camera.h"
 #include "texture.h"
+#include "cube.h"
 
 #include <iostream>
 
@@ -133,75 +134,32 @@ int main() {
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
-    float vertices[] = {
-            // FRONT
-            -0.5f, +0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // A TOP LEFT
-            +0.5f, +0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, // B TOP RIGHT
-            +0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // C BOTTOM RIGHT
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, // D BOTTOM LEFT
 
-            // BOTTOM
-            -0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f, // D TOP LEFT
-            0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 0.0f, -1.0f, 0.0f, // C TOP RIGHT
-            0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, -1.0f, 0.0f, // G BOTTOM RIGHT
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, // H BOTTOM LEFT
-
-            // BACK
-            0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, -1.0f,// F TOP LEFT
-            -0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 0.0f, 0.0f, -1.0f,// E TOP RIGHT
-            -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f, // H BOTTOM RIGHT
-            0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, // G BOTTOM LEFT
-
-            // TOP
-            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // E TOP LEFT
-            0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // F TOP RIGHT
-            0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // B BOTTOM RIGHT
-            -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, // A BOTTOM LEFT
-
-            // LEFT
-            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, // E TOP LEFT
-            -0.5f, 0.5f, 0.5f, 1.0f, 1.0f, -1.0f, 0.0f, 0.0f, // A TOP RIGHT
-            -0.5f, -0.5f, 0.5f, 1.0f, 0.0f, -1.0f, 0.0f, 0.0f, // D BOTTOM RIGHT
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // H BOTTOM LEFT
-            \
-            // RIGHT
-            0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, // B TOP LEFT
-            0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, // F TOP RIGHT
-            0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, // G BOTTOM RIGHT
-            0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // C BOTTOM LEFT
-    };
-
-    unsigned int indices[] = {
-            0, 2, 1,
-            0, 3, 2,
-
-            0 + 4, 2 + 4, 1 + 4,
-            0 + 4, 3 + 4, 2 + 4,
-
-            0 + 8, 2 + 8, 1 + 8,
-            0 + 8, 3 + 8, 2 + 8,
-
-            0 + 12, 2 + 12, 1 + 12,
-            0 + 12, 3 + 12, 2 + 12,
-
-            0 + 16, 2 + 16, 1 + 16,
-            0 + 16, 3 + 16, 2 + 16,
-
-            0 + 20, 2 + 20, 1 + 20,
-            0 + 20, 3 + 20, 2 + 20,
-    };
     // world space positions of our cubes
-    vec3 cubePositions[] = {
-            vec3(0.0f, 0.0f, 0.0f),
-            vec3(2.0f, 5.0f, -15.0f),
-            vec3(-1.5f, -2.2f, -2.5f),
-            vec3(-3.8f, -2.0f, -12.3f),
-            vec3(2.4f, -0.4f, -3.5f),
-            vec3(-1.7f, 3.0f, -7.5f),
-            vec3(1.3f, -2.0f, -2.5f),
-            vec3(1.5f, 2.0f, -2.5f),
-            vec3(1.5f, 0.2f, -1.5f),
-            vec3(-1.3f, 1.0f, -1.5f)
+//    vec3 cubePositions[] = {
+//            vec3(0.0f, 0.0f, 0.0f),
+//            vec3(2.0f, 5.0f, -15.0f),
+//            vec3(-1.5f, -2.2f, -2.5f),
+//            vec3(-3.8f, -2.0f, -12.3f),
+//            vec3(2.4f, -0.4f, -3.5f),
+//            vec3(-1.7f, 3.0f, -7.5f),
+//            vec3(1.3f, -2.0f, -2.5f),
+//            vec3(1.5f, 2.0f, -2.5f),
+//            vec3(1.5f, 0.2f, -1.5f),
+//            vec3(-1.3f, 1.0f, -1.5f)
+//    };
+
+    Cube cubes[] = {
+            Cube(vec3(0.0f, 0.0f, 0.0f)),
+            Cube(vec3(2.0f, 5.0f, -15.0f)),
+            Cube(vec3(-1.5f, -2.2f, -2.5f)),
+            Cube(vec3(-3.8f, -2.0f, -12.3f)),
+            Cube(vec3(2.4f, -0.4f, -3.5f)),
+            Cube(vec3(-1.7f, 3.0f, -7.5f)),
+            Cube(vec3(1.3f, -2.0f, -2.5f)),
+            Cube(vec3(1.5f, 2.0f, -2.5f)),
+            Cube(vec3(1.5f, 0.2f, -1.5f)),
+            Cube(vec3(-1.3f, 1.0f, -1.5f))
     };
 
     unsigned int VBO, cubeVAO, EBO, lightCubeVAO;
@@ -214,10 +172,10 @@ int main() {
     glBindVertexArray(cubeVAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Cube::Vertices), Cube::Vertices, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Cube::Indices), Cube::Indices, GL_STATIC_DRAW);
 
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) nullptr);
@@ -314,18 +272,12 @@ int main() {
         lightingShader.setMat4("view", view);
         lightingShader.setMat4("projection", projection);
 
-//        vec3 lightColor(
-//                abs(sin((float) glfwGetTime() * 1.5f + 1.5f)),
-//                abs(sin((float) glfwGetTime() * 0.5f + 0.5f)),
-//                abs(sin((float) glfwGetTime() * 1.15f - 0.1f))
-//        );
-
         // render boxes
         glBindVertexArray(cubeVAO);
-        for (unsigned int i = 0; i < (sizeof(cubePositions) / sizeof(vec3)); i++) {
+        for (unsigned int i = 0; i < (sizeof(cubes) / sizeof(Cube)); i++) {
             // calculate the model matrix for each object and pass it to shader before drawing
             mat4 model = mat4(1.0f);
-            model = translate(model, cubePositions[i]);
+            model = translate(model, cubes[i].GetPosition());
             auto angle = (float) (90 * i);
             model = rotate(model, radians(angle), normalize(vec3(0, 1.0f, 0)));
             lightingShader.setMat4("model", model);
@@ -340,15 +292,15 @@ int main() {
             lightingShader.setInt("material.diffuse", 0);
             lightingShader.setInt("material.specular", 1);
             lightingShader.setFloat("material.shininess", material.shininess);
-
-            glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
+            
+            glDrawElements(GL_TRIANGLES, sizeof(Cube::Indices) / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
         }
 
         lightCubeShader.use();
         lightCubeShader.setMat4("projection", projection);
         lightCubeShader.setMat4("view", view);
 
-        for (auto pointLightPosition : pointLightPositions) {
+        for (auto pointLightPosition: pointLightPositions) {
             mat4 model(1.0f);
             model = translate(model, pointLightPosition);
             model = scale(model, vec3(0.2f));
@@ -357,7 +309,7 @@ int main() {
             lightCubeShader.setVec3("lightColor", lightColor);
 
             glBindVertexArray(lightCubeVAO);
-            glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, nullptr);
+            glDrawElements(GL_TRIANGLES, sizeof(Cube::Indices) / sizeof(int), GL_UNSIGNED_INT, nullptr);
         }
 
 
